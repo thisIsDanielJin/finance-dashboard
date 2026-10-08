@@ -445,6 +445,15 @@ Rails.application.routes.draw do
     delete :destroy_all, on: :collection
   end
 
+  # Analytics
+  get "analytics", to: "analytics#index"
+  get "analytics/spending_by_category", to: "analytics#spending_by_category"
+  get "analytics/income_vs_expenses", to: "analytics#income_vs_expenses"
+  get "analytics/spending_trends", to: "analytics#spending_trends"
+  get "analytics/net_worth", to: "analytics#net_worth"
+  get "analytics/top_merchants", to: "analytics#top_merchants"
+  get "analytics/summary", to: "analytics#summary"
+
   resources :reports, only: %i[index] do
     patch :update_preferences, on: :collection
     get :export_transactions, on: :collection

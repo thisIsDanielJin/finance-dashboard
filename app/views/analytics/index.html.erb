@@ -1,0 +1,73 @@
+<% content_for :head do %>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<% end %>
+
+<div class="space-y-6 p-6" data-controller="analytics" data-analytics-months-value="3">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-primary">Analytics</h1>
+    <div class="flex gap-1 bg-container rounded-lg p-0.5">
+      <% [["1M", 1], ["3M", 3], ["6M", 6], ["1Y", 12]].each do |label, months| %>
+        <button class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+                data-action="click->analytics#setPeriod"
+                data-analytics-months-param="<%= months %>"
+                data-period-btn="<%= months %>"
+                >
+          <%= label %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-xs text-secondary uppercase tracking-wide mb-2">Income</p>
+      <p class="text-2xl font-bold tabular-nums" id="stat-income">--</p>
+      <p class="text-xs mt-1" id="stat-income-change"></p>
+    </div>
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-xs text-secondary uppercase tracking-wide mb-2">Expenses</p>
+      <p class="text-2xl font-bold tabular-nums" id="stat-expenses">--</p>
+      <p class="text-xs mt-1" id="stat-expenses-change"></p>
+    </div>
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-xs text-secondary uppercase tracking-wide mb-2">Net Savings</p>
+      <p class="text-2xl font-bold tabular-nums" id="stat-savings">--</p>
+    </div>
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-xs text-secondary uppercase tracking-wide mb-2">Savings Rate</p>
+      <p class="text-2xl font-bold tabular-nums" id="stat-rate">--</p>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-sm font-semibold text-secondary mb-4">Where Your Money Goes</p>
+      <div id="chart-donut" style="width: 100%; height: 320px;"></div>
+    </div>
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-sm font-semibold text-secondary mb-4">Income vs Expenses</p>
+      <div id="chart-bar" style="width: 100%; height: 320px;"></div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="bg-container border border-primary/5 rounded-xl p-5">
+    <p class="text-sm font-semibold text-secondary mb-4">Spending Trends by Category</p>
+    <div id="chart-trends" style="width: 100%; height: 400px;"></div>
+  </div>
+
+  <!-- Charts Row 3 -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-sm font-semibold text-secondary mb-4">Net Worth</p>
+      <div id="chart-networth" style="width: 100%; height: 320px;"></div>
+    </div>
+    <div class="bg-container border border-primary/5 rounded-xl p-5">
+      <p class="text-sm font-semibold text-secondary mb-4">Top Merchants</p>
+      <ul id="merchant-list" class="space-y-0 divide-y divide-primary/5"></ul>
+    </div>
+  </div>
+</div>
