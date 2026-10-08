@@ -6,7 +6,12 @@
   <!-- Header -->
   <div class="flex items-center justify-between">
     <h1 class="text-xl font-semibold text-primary">Analytics</h1>
-    <div class="flex gap-1 bg-container rounded-lg p-0.5">
+    <div class="flex items-center gap-3">
+      <%= button_to analytics_categorize_all_path, method: :post, class: "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-surface-hover text-secondary hover:text-primary transition-colors" do %>
+        <%= icon("sparkles", size: "sm") %>
+        Categorize All
+      <% end %>
+      <div class="flex gap-1 bg-container rounded-lg p-0.5">
       <% [["1M", 1], ["3M", 3], ["6M", 6], ["1Y", 12]].each do |label, months| %>
         <button class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
                 data-action="click->analytics#setPeriod"
@@ -16,6 +21,7 @@
           <%= label %>
         </button>
       <% end %>
+    </div>
     </div>
   </div>
 

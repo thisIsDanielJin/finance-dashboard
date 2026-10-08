@@ -4,6 +4,18 @@ class AnalyticsController < ApplicationController
     @breadcrumbs = [ [ t("breadcrumbs.home"), root_path ], [ "Analytics", nil ] ]
   end
 
+  def categorize_all
+    uncategorized = Current.family.transactions.where(category_id: nil).pluck(:id)
+    if uncategorized.any?
+      Current.family.auto_categorize_transactions_later(
+        Current.family.transactions.where(id: uncategorized)
+      )
+      redirect_to analytics_path, notice: "Categorizing #{uncategorized.count} transactions in the background."
+    else
+      redirect_to analytics_path, notice: "All transactions are already categorized."
+    end
+  end
+
   # --- JSON API endpoints for ECharts ---
 
   def spending_by_category

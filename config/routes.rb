@@ -447,6 +447,7 @@ Rails.application.routes.draw do
 
   # Analytics
   get "analytics", to: "analytics#index"
+  post "analytics/categorize_all", to: "analytics#categorize_all", as: :analytics_categorize_all
   get "analytics/spending_by_category", to: "analytics#spending_by_category"
   get "analytics/income_vs_expenses", to: "analytics#income_vs_expenses"
   get "analytics/spending_trends", to: "analytics#spending_trends"
