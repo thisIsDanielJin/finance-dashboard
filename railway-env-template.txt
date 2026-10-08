@@ -1,32 +1,33 @@
 # =============================================================================
-# Railway Environment Variables
-# Paste these into Railway's Raw Editor for EACH service (web + worker)
+# Railway Environment Variables Template
+# Paste into Railway's Raw Editor for BOTH web and worker services
 # =============================================================================
+# Generate with: openssl rand -hex 64
+SECRET_KEY_BASE=GENERATE_YOUR_OWN_WITH_openssl_rand_-hex_64
 
-# --- Core ---
-SECRET_KEY_BASE=b485ebc4dbba0bf9708b41a32e8a899e7c15ad22a8cb1a3eb47562404d0d35ee1c9f2b1194ecd410e363d68a859d1e5d07ebf108d7312d1f5bb4f19f5f9ce16c
 SELF_HOSTED=true
 RAILS_ASSUME_SSL=true
-RAILS_FORCE_SSL=false
 
-# --- Registration (lock after creating your account) ---
-ONBOARDING_STATE=open
+# Close after creating your account
+ONBOARDING_STATE=closed
 
-# --- Database (use Railway reference variables instead) ---
-# DB_HOST=${{Postgres.PGHOST}}
-# DB_PORT=${{Postgres.PGPORT}}
-# POSTGRES_USER=${{Postgres.PGUSER}}
-# POSTGRES_PASSWORD=${{Postgres.PGPASSWORD}}
-# POSTGRES_DB=${{Postgres.PGDATABASE}}
+# Database (Railway reference variables)
+DB_HOST=${{Postgres.PGHOST}}
+DB_PORT=${{Postgres.PGPORT}}
+POSTGRES_USER=${{Postgres.PGUSER}}
+POSTGRES_PASSWORD=${{Postgres.PGPASSWORD}}
+POSTGRES_DB=${{Postgres.PGDATABASE}}
+REDIS_URL=${{Redis.REDIS_URL}}
 
-# --- Redis (use Railway reference variable) ---
-# REDIS_URL=${{Redis.REDIS_URL}}
+# Encryption (generate each with: openssl rand -hex 16)
+ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=GENERATE_YOUR_OWN
+ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=GENERATE_YOUR_OWN
+ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=GENERATE_YOUR_OWN
+ACTIVE_RECORD_ENCRYPTION_SUPPORT_UNENCRYPTED_DATA=true
 
-# --- DeepSeek LLM ---
-# OPENAI_ACCESS_TOKEN=sk-your-deepseek-key
-# OPENAI_URI_BASE=https://api.deepseek.com/v1
-# OPENAI_MODEL=deepseek-chat
-# LLM_CONTEXT_WINDOW=4096
-# LLM_MAX_RESPONSE_TOKENS=1024
+# Gemini LLM (free tier, get key from aistudio.google.com)
+# OPENAI_ACCESS_TOKEN=your-gemini-api-key
+# OPENAI_URI_BASE=https://generativelanguage.googleapis.com/v1beta/openai/
+# OPENAI_MODEL=gemini-2.5-flash
 OPENAI_REQUEST_TIMEOUT=120
 AI_RESPONSE_TIMEOUT=180

@@ -7,8 +7,8 @@ class AnalyticsController < ApplicationController
   # --- JSON API endpoints for ECharts ---
 
   def spending_by_category
-    months = (params[:months] || 3).to_i
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    months = sanitize_months(params[:months])
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "spending_by_category", [ Current.family.id ])
       SELECT
         COALESCE(c.name, 'Uncategorized') AS category,
         COALESCE(pc.name, c.name, 'Uncategorized') AS parent_category,
@@ -22,7 +22,7 @@ class AnalyticsController < ApplicationController
       LEFT JOIN categories pc ON pc.id = c.parent_id
       WHERE e.amount > 0
         AND e.date >= CURRENT_DATE - INTERVAL '#{months} months'
-        AND a.family_id = #{Current.family.id}
+        AND a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND e.excluded = false
       GROUP BY c.name, pc.name, c.color
@@ -32,8 +32,8 @@ class AnalyticsController < ApplicationController
   end
 
   def income_vs_expenses
-    months = (params[:months] || 12).to_i
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    months = sanitize_months(params[:months], default: 12)
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "income_vs_expenses", [ Current.family.id ])
       SELECT
         TO_CHAR(e.date, 'YYYY-MM') AS month,
         SUM(CASE WHEN e.amount > 0 THEN ABS(e.amount) ELSE 0 END) AS expenses,
@@ -42,7 +42,7 @@ class AnalyticsController < ApplicationController
       JOIN transactions t ON t.id = e.entryable_id AND e.entryable_type = 'Transaction'
       JOIN accounts a ON a.id = e.account_id
       WHERE e.date >= CURRENT_DATE - INTERVAL '#{months} months'
-        AND a.family_id = #{Current.family.id}
+        AND a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND e.excluded = false
       GROUP BY TO_CHAR(e.date, 'YYYY-MM')
@@ -52,9 +52,9 @@ class AnalyticsController < ApplicationController
   end
 
   def spending_trends
-    months = (params[:months] || 6).to_i
-    limit = (params[:limit] || 8).to_i
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    months = sanitize_months(params[:months], default: 6)
+    limit = sanitize_limit(params[:limit], default: 8)
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "spending_trends", [ Current.family.id ])
       WITH top_categories AS (
         SELECT COALESCE(c.name, 'Uncategorized') AS category
         FROM entries e
@@ -63,7 +63,7 @@ class AnalyticsController < ApplicationController
         LEFT JOIN categories c ON c.id = t.category_id
         WHERE e.amount > 0
           AND e.date >= CURRENT_DATE - INTERVAL '#{months} months'
-          AND a.family_id = #{Current.family.id}
+          AND a.family_id = $1
           AND a.status IN ('draft', 'active')
           AND e.excluded = false
         GROUP BY c.name
@@ -80,7 +80,7 @@ class AnalyticsController < ApplicationController
       LEFT JOIN categories c ON c.id = t.category_id
       WHERE e.amount > 0
         AND e.date >= CURRENT_DATE - INTERVAL '#{months} months'
-        AND a.family_id = #{Current.family.id}
+        AND a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND e.excluded = false
         AND COALESCE(c.name, 'Uncategorized') IN (SELECT category FROM top_categories)
@@ -91,8 +91,8 @@ class AnalyticsController < ApplicationController
   end
 
   def net_worth
-    months = (params[:months] || 12).to_i
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    months = sanitize_months(params[:months], default: 12)
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "net_worth", [ Current.family.id ])
       SELECT
         TO_CHAR(ab.date, 'YYYY-MM-DD') AS date,
         a.name AS account_name,
@@ -101,7 +101,7 @@ class AnalyticsController < ApplicationController
       FROM account_balances ab
       JOIN accounts a ON a.id = ab.account_id
       WHERE ab.date >= CURRENT_DATE - INTERVAL '#{months} months'
-        AND a.family_id = #{Current.family.id}
+        AND a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND ab.date = (
           SELECT MAX(ab2.date)
@@ -115,9 +115,9 @@ class AnalyticsController < ApplicationController
   end
 
   def top_merchants
-    months = (params[:months] || 3).to_i
-    limit = (params[:limit] || 15).to_i
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    months = sanitize_months(params[:months])
+    limit = sanitize_limit(params[:limit], default: 15)
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "top_merchants", [ Current.family.id ])
       SELECT
         COALESCE(m.name, e.name, 'Unknown') AS merchant,
         COALESCE(c.name, 'Uncategorized') AS category,
@@ -130,7 +130,7 @@ class AnalyticsController < ApplicationController
       LEFT JOIN categories c ON c.id = t.category_id
       WHERE e.amount > 0
         AND e.date >= CURRENT_DATE - INTERVAL '#{months} months'
-        AND a.family_id = #{Current.family.id}
+        AND a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND e.excluded = false
       GROUP BY COALESCE(m.name, e.name, 'Unknown'), c.name
@@ -141,8 +141,7 @@ class AnalyticsController < ApplicationController
   end
 
   def summary
-    family_id = Current.family.id
-    result = ActiveRecord::Base.connection.execute(<<~SQL)
+    result = ActiveRecord::Base.connection.exec_query(<<~SQL, "summary", [ Current.family.id ])
       SELECT
         SUM(CASE WHEN e.amount < 0 AND e.date >= DATE_TRUNC('month', CURRENT_DATE) THEN ABS(e.amount) ELSE 0 END) AS income_this_month,
         SUM(CASE WHEN e.amount > 0 AND e.date >= DATE_TRUNC('month', CURRENT_DATE) THEN ABS(e.amount) ELSE 0 END) AS expenses_this_month,
@@ -151,7 +150,7 @@ class AnalyticsController < ApplicationController
       FROM entries e
       JOIN transactions t ON t.id = e.entryable_id AND e.entryable_type = 'Transaction'
       JOIN accounts a ON a.id = e.account_id
-      WHERE a.family_id = #{family_id}
+      WHERE a.family_id = $1
         AND a.status IN ('draft', 'active')
         AND e.excluded = false
     SQL
@@ -161,4 +160,19 @@ class AnalyticsController < ApplicationController
     savings_rate = income > 0 ? ((income - expenses) / income * 100).round(1) : 0
     render json: row.merge("savings_rate" => savings_rate)
   end
+
+  private
+
+    # Sanitize integer params to prevent SQL injection.
+    # months/limit are interpolated into INTERVAL/LIMIT clauses which
+    # don't support $N placeholders in PostgreSQL.
+    def sanitize_months(value, default: 3)
+      v = value.to_i
+      v > 0 && v <= 120 ? v : default
+    end
+
+    def sanitize_limit(value, default: 15)
+      v = value.to_i
+      v > 0 && v <= 100 ? v : default
+    end
 end
