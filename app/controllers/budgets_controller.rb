@@ -12,6 +12,7 @@ class BudgetsController < ApplicationController
     @source_budget = @budget.most_recent_initialized_budget unless @budget.initialized?
     @editable = @budget.editable_by?(Current.user)
     @switch_options = budget_switch_options(@budget)
+    @ideal_split = Budget::IdealSplit.new(@budget)
     @breadcrumbs = plan_breadcrumb_prefix + [ [ t("breadcrumbs.budgets"), nil ] ]
   end
 

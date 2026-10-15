@@ -1,0 +1,41 @@
+<%# locals: (ideal_split:) %>
+<% currency = ideal_split.currency %>
+<% visible_rows = ideal_split.rows.select { |row| row.ideal_percent.positive? || row.budgeted_amount.positive? || row.actual_amount.positive? } %>
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-secondary text-left border-b border-primary">
+        <th class="py-2 pr-4 font-medium"><%= t("budgets.ideal_split.table.category") %></th>
+        <th class="py-2 px-4 font-medium text-right"><%= t("budgets.ideal_split.table.ideal_percent") %></th>
+        <th class="py-2 px-4 font-medium text-right"><%= t("budgets.ideal_split.table.ideal") %></th>
+        <th class="py-2 px-4 font-medium text-right"><%= t("budgets.ideal_split.table.budgeted") %></th>
+        <th class="py-2 px-4 font-medium text-right"><%= t("budgets.ideal_split.table.actual") %></th>
+        <th class="py-2 pl-4 font-medium text-right"><%= t("budgets.ideal_split.table.deviation") %></th>
+      </tr>
+    </thead>
+    <tbody class="privacy-sensitive">
+      <% visible_rows.each do |row| %>
+        <tr class="border-b border-alpha-black-25">
+          <td class="py-2 pr-4">
+            <span class="inline-flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: <%= row.category.color %>"></span>
+              <%= row.category.name %>
+            </span>
+          </td>
+          <td class="py-2 px-4 text-right text-secondary"><%= number_to_percentage(row.ideal_percent, precision: row.ideal_percent == row.ideal_percent.to_i ? 0 : 1) %></td>
+          <td class="py-2 px-4 text-right"><%= Money.new(row.ideal_amount, currency).format %></td>
+          <td class="py-2 px-4 text-right text-secondary"><%= Money.new(row.budgeted_amount, currency).format %></td>
+          <td class="py-2 px-4 text-right"><%= Money.new(row.actual_amount, currency).format %></td>
+          <td class="py-2 pl-4 text-right <%= row.over_ideal? ? "text-destructive" : "text-success" %>">
+            <% if row.ideal_percent.positive? %>
+              <%= row.over_ideal? ? "+" : "" %><%= Money.new(row.deviation, currency).format %>
+            <% else %>
+              <span class="text-secondary">-</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

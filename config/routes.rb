@@ -475,6 +475,8 @@ Rails.application.routes.draw do
     end
   end
 
+  resource :ideal_allocations, only: %i[edit update]
+
   resources :goals do
     member do
       patch :pause

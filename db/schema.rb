@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_07_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -1231,6 +1231,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
     t.datetime "updated_at", null: false
     t.index ["family_id"], name: "index_ibkr_items_on_family_id"
     t.index ["status"], name: "index_ibkr_items_on_status"
+  end
+
+  create_table "ideal_allocations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.decimal "amount", precision: 12, scale: 2
+    t.string "basis", default: "percent", null: false
+    t.uuid "category_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "family_id", null: false
+    t.decimal "percent", precision: 5, scale: 2, default: "0.0"
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_ideal_allocations_on_category_id"
+    t.index ["family_id", "category_id"], name: "index_ideal_allocations_on_family_id_and_category_id", unique: true
+    t.index ["family_id"], name: "index_ideal_allocations_on_family_id"
   end
 
   create_table "impersonation_session_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -3010,6 +3023,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_05_120000) do
   add_foreign_key "holdings", "securities", column: "provider_security_id"
   add_foreign_key "ibkr_accounts", "ibkr_items"
   add_foreign_key "ibkr_items", "families"
+  add_foreign_key "ideal_allocations", "categories"
+  add_foreign_key "ideal_allocations", "families"
   add_foreign_key "impersonation_session_logs", "impersonation_sessions"
   add_foreign_key "impersonation_sessions", "users", column: "impersonated_id"
   add_foreign_key "impersonation_sessions", "users", column: "impersonator_id"

@@ -53,6 +53,11 @@
       <%= render "budgets/available_cash", budget: @budget %>
     <% end %>
 
+    <%# Ideal budget split: how you want income to flow vs budgeted vs actual %>
+    <% if @budget.initialized? %>
+      <%= render "budgets/ideal_split", budget: @budget, ideal_split: @ideal_split, editable: @editable %>
+    <% end %>
+
     <%# Bottom Section: Categories full width %>
     <% has_over_budget = budget_has_over_budget?(@budget) %>
     <%= content_tag :div,

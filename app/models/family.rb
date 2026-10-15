@@ -65,6 +65,7 @@ class Family < ApplicationRecord
 
   has_many :budgets, dependent: :destroy
   has_many :budget_categories, through: :budgets
+  has_many :ideal_allocations, dependent: :destroy
 
   has_many :goals, dependent: :destroy
 
