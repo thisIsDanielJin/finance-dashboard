@@ -1,0 +1,50 @@
+<%# locals: (budget:, ideal_split:, editable:) %>
+<div class="w-full bg-container rounded-xl shadow-border-xs p-4 space-y-4">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div>
+      <h2 class="text-lg font-medium"><%= t("budgets.ideal_split.title") %></h2>
+      <p class="text-sm text-secondary"><%= t("budgets.ideal_split.subtitle") %></p>
+    </div>
+
+    <% if editable %>
+      <%= render DS::Link.new(
+        text: t("budgets.ideal_split.edit"),
+        variant: "secondary",
+        icon: "sliders-horizontal",
+        href: edit_ideal_allocations_path(return_to: budget_path(budget, **budget_owner_query))
+      ) %>
+    <% end %>
+  </div>
+
+  <% if ideal_split.configured? %>
+    <%= render DS::Tabs.new(active_tab: "ideal") do |tabs| %>
+      <% tabs.with_nav do |nav| %>
+        <% nav.with_btn(id: "ideal", label: t("budgets.ideal_split.tabs.ideal")) %>
+        <% nav.with_btn(id: "budgeted", label: t("budgets.ideal_split.tabs.budgeted")) %>
+        <% nav.with_btn(id: "actual", label: t("budgets.ideal_split.tabs.actual")) %>
+      <% end %>
+
+      <% %w[ideal budgeted actual].each do |mode| %>
+        <% tabs.with_panel(tab_id: mode) do %>
+          <%= render "budgets/ideal_split_chart", sankey_data: ideal_split.sankey(mode.to_sym), period: budget.period %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= render "budgets/ideal_split_table", ideal_split: ideal_split %>
+  <% else %>
+    <div class="py-10 flex flex-col items-center justify-center text-center space-y-3">
+      <%= render DS::FilledIcon.new(variant: :container, icon: "sliders-horizontal") %>
+      <p class="text-sm font-medium text-primary"><%= t("budgets.ideal_split.empty_title") %></p>
+      <p class="text-secondary text-sm max-w-md"><%= t("budgets.ideal_split.empty_description") %></p>
+      <% if editable %>
+        <%= render DS::Link.new(
+          text: t("budgets.ideal_split.empty_cta"),
+          variant: "primary",
+          icon: "plus",
+          href: edit_ideal_allocations_path(return_to: budget_path(budget, **budget_owner_query))
+        ) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

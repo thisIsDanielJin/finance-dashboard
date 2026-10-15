@@ -4,6 +4,29 @@ en:
     switcher:
       aria_label: "Switch budget"
       household: "Household"
+    ideal_split:
+      title: "Ideal budget split"
+      subtitle: "How you want income to flow, compared to what you budgeted and spent."
+      edit: "Edit ideal split"
+      zoom_out: "Zoom out"
+      no_flow: "No amounts to chart for this view yet."
+      income_node: "Income"
+      center_node: "Budget"
+      unallocated_node: "Unallocated"
+      tabs:
+        ideal: "Ideal"
+        budgeted: "Budgeted"
+        actual: "Actual"
+      empty_title: "Set your ideal split"
+      empty_description: "Choose what share of your income each category should take, then compare it with your budget and actual spending."
+      empty_cta: "Set ideal split"
+      table:
+        category: "Category"
+        ideal_percent: "Ideal %"
+        ideal: "Ideal"
+        budgeted: "Budgeted"
+        actual: "Actual"
+        deviation: "vs ideal"
     budget_donut:
       spent: "Spent"
       new_budget: "New budget"

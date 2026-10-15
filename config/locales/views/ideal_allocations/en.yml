@@ -1,0 +1,16 @@
+---
+en:
+  ideal_allocations:
+    edit:
+      title: "Ideal budget split"
+      description: "Set the share of your income you want each category to take, as a euro amount or a percentage. The remainder stays unallocated."
+      unit_label: "Entry unit"
+      unit_amount: "%{symbol} Amount"
+      unit_percent: "% Percent"
+      allocated: "Allocated:"
+      no_base_hint: "Set an expected income on this month's budget to switch between euros and percentages."
+      save: "Save ideal split"
+      cancel: "Cancel"
+    update:
+      success: "Ideal split saved."
+      invalid: "Each amount must be positive, and each percentage between 0 and 100."

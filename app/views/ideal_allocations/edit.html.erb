@@ -1,0 +1,77 @@
+<% content_for :title, t(".title") %>
+<% currency_symbol = Money::Currency.new(Current.family.currency).symbol %>
+
+<div class="mx-auto max-w-xl py-6 space-y-6">
+  <div class="space-y-2">
+    <h1 class="text-2xl font-medium text-primary"><%= t(".title") %></h1>
+    <p class="text-secondary text-sm"><%= t(".description") %></p>
+  </div>
+
+  <div
+    class="bg-container rounded-xl shadow-border-xs p-5"
+    data-controller="ideal-allocations-form"
+    data-ideal-allocations-form-base-value="<%= @base.to_f %>"
+    data-ideal-allocations-form-mode-value="<%= @initial_basis %>"
+    data-ideal-allocations-form-currency-symbol-value="<%= currency_symbol %>">
+
+    <div class="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-primary">
+      <%= render DS::SegmentedControl.new(aria_label: t(".unit_label")) do |sc| %>
+        <% sc.with_segment t(".unit_amount", symbol: currency_symbol),
+             active: @initial_basis == "amount",
+             data: { action: "ideal-allocations-form#setMode", ideal_allocations_form_mode_param: "amount", ideal_allocations_form_target: "modeButton" } %>
+        <% sc.with_segment t(".unit_percent"),
+             active: @initial_basis == "percent",
+             data: { action: "ideal-allocations-form#setMode", ideal_allocations_form_mode_param: "percent", ideal_allocations_form_target: "modeButton" } %>
+      <% end %>
+
+      <div class="text-sm text-secondary">
+        <%= t(".allocated") %>
+        <span class="font-medium text-primary" data-ideal-allocations-form-target="summary"></span>
+      </div>
+    </div>
+
+    <%= styled_form_with url: ideal_allocations_path, method: :patch, scope: :values, class: "space-y-3" do |f| %>
+      <%= hidden_field_tag :return_to, @return_to %>
+      <%= hidden_field_tag :basis, @initial_basis, data: { ideal_allocations_form_target: "basisField" } %>
+
+      <% @categories.each do |category| %>
+        <% allocation = @allocations[category.id] %>
+        <% amount_value = allocation ? allocation.ideal_amount(@base).round(2) : nil %>
+        <% percent_value = allocation ? allocation.ideal_percent(@base).round(1) : nil %>
+        <div class="flex items-center gap-3">
+          <span class="w-3 h-3 rounded-full shrink-0" style="background-color: <%= category.color %>"></span>
+          <label for="values_<%= category.id %>" class="flex-1 text-sm text-primary"><%= category.name %></label>
+          <div class="w-40 flex items-center gap-1">
+            <span class="text-secondary text-sm w-4 text-right" data-ideal-allocations-form-target="prefix"><%= @initial_basis == "amount" ? currency_symbol : "" %></span>
+            <%= f.number_field category.id,
+                  value: @initial_basis == "amount" ? amount_value : percent_value,
+                  step: @initial_basis == "amount" ? 0.01 : 0.1,
+                  min: 0,
+                  placeholder: "0",
+                  inline: true,
+                  data: {
+                    ideal_allocations_form_target: "input",
+                    amount: amount_value,
+                    percent: percent_value,
+                    action: "input->ideal-allocations-form#recalculate"
+                  } %>
+            <span class="text-secondary text-sm w-4" data-ideal-allocations-form-target="suffix"><%= @initial_basis == "percent" ? "%" : "" %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <% if @base.zero? %>
+        <p class="text-xs text-secondary pt-1"><%= t(".no_base_hint") %></p>
+      <% end %>
+
+      <div class="flex items-center justify-end gap-3 pt-4">
+        <%= render DS::Link.new(
+          text: t(".cancel"),
+          variant: "secondary",
+          href: @return_to.presence || budgets_path
+        ) %>
+        <%= f.submit t(".save") %>
+      </div>
+    <% end %>
+  </div>
+</div>

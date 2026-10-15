@@ -1,0 +1,33 @@
+<%# locals: (sankey_data:, period:) %>
+<%# Renders one Ideal Split Sankey via the shared sankey-chart controller. %>
+<% if sankey_data[:links].present? %>
+  <div class="w-full h-80 lg:h-96">
+    <div
+      data-controller="sankey-chart"
+      data-sankey-chart-data-value="<%= sankey_data.to_json %>"
+      data-sankey-chart-currency-symbol-value="<%= sankey_data[:currency_symbol] %>"
+      data-sankey-chart-start-date-value="<%= period.start_date&.iso8601 %>"
+      data-sankey-chart-end-date-value="<%= period.end_date&.iso8601 %>"
+      class="w-full h-full privacy-sensitive flex flex-col gap-2">
+      <div class="flex justify-start px-4">
+        <%= render DS::Button.new(
+          variant: :icon,
+          icon: "arrow-left",
+          type: "button",
+          title: t("budgets.ideal_split.zoom_out"),
+          aria: { label: t("budgets.ideal_split.zoom_out") },
+          hidden: true,
+          data: {
+            sankey_chart_target: "zoomOutButton",
+            action: "sankey-chart#zoomOut"
+          }
+        ) %>
+      </div>
+      <div data-sankey-chart-target="chart" class="min-h-0 flex-1"></div>
+    </div>
+  </div>
+<% else %>
+  <div class="h-80 flex items-center justify-center">
+    <p class="text-sm text-secondary"><%= t("budgets.ideal_split.no_flow") %></p>
+  </div>
+<% end %>
