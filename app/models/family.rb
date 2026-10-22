@@ -454,6 +454,12 @@ class Family < ApplicationRecord
     AutoCategorizeJob.perform_later(self, transaction_ids: transactions.pluck(:id), rule_run_id: rule_run_id)
   end
 
+  # LLM categorization runs in small batches so a transient provider outage (a
+  # 429 or 503 from an overloaded free tier) only loses the current batch, not
+  # the whole run. Successful batches are applied inside AutoCategorizer, so
+  # partial progress persists across failures.
+  LLM_CATEGORIZE_BATCH_SIZE = 25
+
   def auto_categorize_transactions(transaction_ids)
     bayes_result = Family::BayesCategorizer.new(self).classify_and_apply(transaction_ids)
     remaining_ids = Array(transaction_ids) - bayes_result.categorized_ids
@@ -476,7 +482,26 @@ class Family < ApplicationRecord
       return bayes_result.modified_count
     end
 
-    llm_modified_count = AutoCategorizer.new(self, transaction_ids: remaining_ids).auto_categorize
+    batches = Array(remaining_ids).each_slice(LLM_CATEGORIZE_BATCH_SIZE).to_a
+    llm_modified_count = 0
+    failed_batches = 0
+    last_error = nil
+
+    batches.each do |batch|
+      llm_modified_count += AutoCategorizer.new(self, transaction_ids: batch).auto_categorize
+    rescue AutoCategorizer::Error => e
+      failed_batches += 1
+      last_error = e
+      Rails.logger.warn("[auto_categorization] batch of #{batch.size} failed, continuing: #{e.message}")
+    end
+
+    # Only surface a failure (so the job retries later) when every batch failed
+    # and nothing was applied. Re-raise the original error to preserve the
+    # provider error contract. Any partial success returns normally.
+    if batches.any? && failed_batches == batches.size && llm_modified_count.zero?
+      raise last_error
+    end
+
     bayes_result.modified_count + llm_modified_count
   end
 
